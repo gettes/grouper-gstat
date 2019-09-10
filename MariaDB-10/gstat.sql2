@@ -1,0 +1,12 @@
+With clc as (
+SELECT  name as "Consumer",
+        LPAD(TRIM(REGEXP_REPLACE(TIME_FORMAT(SEC_TO_TIME( ROUND((1000*UNIX_TIMESTAMP(NOW()) - last_updated)/1000,0)), '%k:%i:%s' ), '\\b0+:',' ')),8,' ') as "Age",
+        lpad(format((max.ct - last_sequence_processed),0),10,' ') as "To_Go",
+        left(FROM_UNIXTIME(last_updated/1000),19) as "Last Updated"
+FROM grouper_change_log_consumer LEFT JOIN
+        (select max(last_sequence_processed) as ct from grouper_change_log_consumer) as max
+        on name is not NULL and name not like 'tableSync_%'
+)
+select * from clc
+order by 3 desc, 2 asc
+;
