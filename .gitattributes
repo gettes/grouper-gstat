@@ -2,5 +2,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
-*.sql text
-*.sh  text
+*.sql text linguist-language=SQL
+*.sh  text linguist-language=bash
