@@ -36,11 +36,11 @@ SELECT
     	,
     	'CHANGE_LOG_',''), 'subjobFor_','  '), 'LOADERJOBSPREFIX', '') as job_name, /* needs mysql 8+, mariadb v10+ or OracleDB */
     TOTAL_COUNT AS "Tot", INSERT_COUNT AS "Ins", UPDATE_COUNT AS "Upd", DELETE_COUNT AS "Del", UNRESOLVABLE_SUBJECT_COUNT AS "UN",
-    (CASE WHEN 1 = 0 THEN 'x'
+    IFNULL (CASE WHEN 1 = 0 THEN 'x'
     	WHEN STATUS = 'SUCCESS' THEN CONCAT(JOB_SCHEDULE_PRIORITY,' ok')
     	WHEN STATUS in ('STARTED') THEN CONCAT(JOB_SCHEDULE_PRIORITY, ' ', STATUS)
     	WHEN JOB_SCHEDULE_PRIORITY is NULL THEN CONCAT('- ',STATUS,' - ',JOB_TYPE)
-    	ELSE CONCAT(JOB_SCHEDULE_PRIORITY,' ',STATUS,' - ',JOB_TYPE) END) AS "Status",
+    	ELSE CONCAT(JOB_SCHEDULE_PRIORITY,' ',STATUS,' - ',JOB_TYPE) END, ' - ') AS "Status",
  	HOST as "Host",  /* important if you have >1 host running loader jobs - is container id in Docker */
     CASE WHEN JOB_MESSAGE IS NULL THEN ' ' ELSE 
 	 rtrim(REGEXP_REPLACE(JOB_MESSAGE,'^(.+) processed (.+) records,(.+), (.+) of (.+) sub(.+)', 'processing \\2, \\4  /  \\5')) END AS "Job_Message"
