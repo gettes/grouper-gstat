@@ -8,13 +8,13 @@ select left(rtrim(Start),5+9+2) as "Start", left(rtrim(End),8) as "End", right(r
 	left(REGEXP_REPLACE(Job_Message,"^java.lang.RuntimeException: (.*)",'\\1'), 68) as "Message" From (
 SELECT '9' as "Start",' ' as "End", ' ' as "Run",'ChangeLog Main (Last-Seq-# / Cnt)' as Job_Name, clc.x as "Tot",
         ' ' as "Ins", ' ' as "Upd",' ' as "Del",' ' as "UN",' ' as "Status",' ' as "Host",
-        CONCAT('CNT( ',format(is_cle.table_rows,0),' ) LOG( ',format(is_log.table_rows,0),
-		' ) MSG( ',format(is_msg.table_rows,0), ' - ', is_msg_age.age, ' )') as "Job_Message"
+        CONCAT('MCL-CNT( ',format(is_cle.table_rows,0),' ) LDR-LOG( ',format(is_log.table_rows,0),
+		' ) GRP-MQ( ',format(is_msg.table_rows,0), ' - ', is_msg_age.age, ' )') as "Job_Message"
 from 
 (select table_rows from information_schema.tables  where table_name = 'grouper_change_log_entry') is_cle,
 (select table_rows from information_schema.tables  where table_name = 'grouper_loader_log') is_log,
 (select table_rows from information_schema.tables  where table_name = 'grouper_message') is_msg,
-(select LPAD(TRIM(REGEXP_REPLACE( TIME_FORMAT(SEC_TO_TIME( TIMESTAMPDIFF(SECOND, IFNULL(from_unixtime(round(MIN(SENT_TIME_MICROS)/1000/1000)), NOW()), NOW()) ), '%k:%i:%s' ), '\\b0+:',' ')), 8,' ') as age
+(select LTRIM(LPAD(TRIM(REGEXP_REPLACE( TIME_FORMAT(SEC_TO_TIME( TIMESTAMPDIFF(SECOND, IFNULL(from_unixtime(round(MIN(SENT_TIME_MICROS)/1000/1000)),NOW()), NOW()) ), '%k:%i:%s' ), '\\b0+:',' ')), 8,' ')) as age
 	from grouper_message ) is_msg_age,
 (select max(last_sequence_processed) as x,name from grouper_change_log_consumer where hibernate_version_number > 0 ) clc
 union all
@@ -36,8 +36,7 @@ SELECT
     	,
     	'CHANGE_LOG_',''), 'subjobFor_','  '), 'LOADERJOBSPREFIX', '') as job_name, /* needs mysql 8+, mariadb v10+ or OracleDB */
     TOTAL_COUNT AS "Tot", INSERT_COUNT AS "Ins", UPDATE_COUNT AS "Upd", DELETE_COUNT AS "Del", UNRESOLVABLE_SUBJECT_COUNT AS "UN",
-    IFNULL (CASE WHEN 1 = 0 THEN 'x'
-    	WHEN STATUS = 'SUCCESS' THEN CONCAT(JOB_SCHEDULE_PRIORITY,' ok')
+    IFNULL (CASE WHEN STATUS = 'SUCCESS' THEN CONCAT(JOB_SCHEDULE_PRIORITY,' ok')
     	WHEN STATUS in ('STARTED') THEN CONCAT(JOB_SCHEDULE_PRIORITY, ' ', STATUS)
     	WHEN JOB_SCHEDULE_PRIORITY is NULL THEN CONCAT('- ',STATUS,' - ',JOB_TYPE)
     	ELSE CONCAT(JOB_SCHEDULE_PRIORITY,' ',STATUS,' - ',JOB_TYPE) END, ' - ') AS "Status",
