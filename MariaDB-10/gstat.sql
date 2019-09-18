@@ -14,7 +14,7 @@ from
 (select table_rows from information_schema.tables  where table_name = 'grouper_change_log_entry') is_cle,
 (select table_rows from information_schema.tables  where table_name = 'grouper_loader_log') is_log,
 (select table_rows from information_schema.tables  where table_name = 'grouper_message') is_msg,
-(select LPAD(TRIM(REGEXP_REPLACE( TIME_FORMAT(SEC_TO_TIME( TIMESTAMPDIFF(SECOND, from_unixtime(round(MIN(SENT_TIME_MICROS)/1000/1000)), NOW()) ), '%k:%i:%s' ), '\\b0+:',' ')), 8,' ') as age
+(select LPAD(TRIM(REGEXP_REPLACE( TIME_FORMAT(SEC_TO_TIME( TIMESTAMPDIFF(SECOND, IFNULL(from_unixtime(round(MIN(SENT_TIME_MICROS)/1000/1000)), NOW()), NOW()) ), '%k:%i:%s' ), '\\b0+:',' ')), 8,' ') as age
 	from grouper_message ) is_msg_age,
 (select max(last_sequence_processed) as x,name from grouper_change_log_consumer where hibernate_version_number > 0 ) clc
 union all
